@@ -57,7 +57,14 @@ public class RsService {
     public void buy(Trade trade, int rsEventId) {
         Optional<RsEventDto> rsEventDto = rsEventRepository.findById(rsEventId);
         List<TradeDto> tradeDtoList = tradeRepository.findAllByRsEventId(rsEventId);
-        if (!rsEventDto.isPresent()) {
+        final int[] rsEventAmount = {Integer.MIN_VALUE};
+        tradeDtoList.forEach(cur -> {
+            if (cur.getAmount() > rsEventAmount[0]) {
+                rsEventAmount[0] = cur.getAmount();
+            }
+        });
+        if (!rsEventDto.isPresent()
+                || rsEventAmount[0] >= trade.getAmount()) {
             throw new RuntimeException();
         }
         TradeDto tradeDto =

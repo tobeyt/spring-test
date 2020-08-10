@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,7 +37,7 @@ class RsServiceTest {
     TradeRepository tradeRepository;
     LocalDateTime localDateTime;
     Vote vote;
-    Trade trade;
+Trade trade;
 
     @BeforeEach
     void setUp() {
@@ -108,7 +109,6 @@ class RsServiceTest {
                         .user(userDto)
                         .build();
         when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
-        when(userRepository.findById(anyInt())).thenReturn(Optional.of(userDto));
         // when
         rsService.buy(trade, 1);
         // then
@@ -131,6 +131,43 @@ class RsServiceTest {
                 RuntimeException.class,
                 () -> {
                     rsService.vote(vote, 1);
+                });
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAmountLessThenRsEventPrice() {
+        // given
+        UserDto userDto =
+                UserDto.builder()
+                        .voteNum(5)
+                        .phone("18888888888")
+                        .gender("female")
+                        .email("a@b.com")
+                        .age(19)
+                        .userName("xiaoli")
+                        .id(2)
+                        .build();
+        RsEventDto rsEventDto =
+                RsEventDto.builder()
+                        .eventName("event name")
+                        .id(1)
+                        .keyword("keyword")
+                        .voteNum(2)
+                        .user(userDto)
+                        .build();
+        when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+        TradeDto tradeDto =
+                TradeDto.builder()
+                        .rsEvent(rsEventDto)
+                        .rank(1)
+                        .amount(101)
+                        .build();
+        when(tradeRepository.findAllByRsEventId(1)).thenReturn(Arrays.asList(tradeDto));
+        //when&then
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    rsService.buy(trade, 1);
                 });
     }
 }
